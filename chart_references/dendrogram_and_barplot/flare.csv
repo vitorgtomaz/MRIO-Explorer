@@ -1,0 +1,35 @@
+id,value
+UNC-CH,
+UNC-CH.QuickFactsData,
+UNC-CH.QuickFactsData.Gender,
+UNC-CH.QuickFactsData.Gender.Female,16827
+UNC-CH.QuickFactsData.Gender.Male,12642
+UNC-CH.QuickFactsData.Age,
+UNC-CH.QuickFactsData.Age.Under 25,20873
+UNC-CH.QuickFactsData.Age.25 and Over,8595
+UNC-CH.QuickFactsData.Attendance,
+UNC-CH.QuickFactsData.Attendance.Full-Time,25084
+UNC-CH.QuickFactsData.Attendance.Part-Time,4585
+UNC-CH.QuickFactsData.Residency,
+UNC-CH.QuickFactsData.Residency.In-State,21232
+UNC-CH.QuickFactsData.Residency.Out-of-State,8237
+UNC-CH.QuickFactsData.Enrollment,
+UNC-CH.QuickFactsData.Enrollment.Undergraduate,18523
+UNC-CH.QuickFactsData.Enrollment.Graduate,8427
+UNC-CH.QuickFactsData.Enrollment.Professional,2519
+UNC-CH.QuickFactsData.Citizenship,
+UNC-CH.QuickFactsData.Citizenship.US Citizen,27114
+UNC-CH.QuickFactsData.Citizenship.Resident Alien,763
+UNC-CH.QuickFactsData.Citizenship.Nonresident Alien,1592
+UNC-CH.QuickFactsData.Proximity,
+UNC-CH.QuickFactsData.Proximity.On-Campus,27100
+UNC-CH.QuickFactsData.Proximity.Off-Campus,2369
+UNC-CH.QuickFactsData.Race,
+UNC-CH.QuickFactsData.Race.American Indian or Alaskan Native,129
+UNC-CH.QuickFactsData.Race.Asian,3759
+UNC-CH.QuickFactsData.Race.Black or African-American,2342
+UNC-CH.QuickFactsData.Race.Hispanic,2145
+UNC-CH.QuickFactsData.Race.Native Hawaiian or Pacific Islander,43
+UNC-CH.QuickFactsData.Race.Race/Ethnicity Unknown,1184
+UNC-CH.QuickFactsData.Race.Two or More Races,1610
+UNC-CH.QuickFactsData.Race.White,18257

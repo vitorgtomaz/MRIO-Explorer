@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MRIO Chart Builder: Map View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3b82f6",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                },
+            },
+        };
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chart-icon-active {
+            @apply text-primary border-b-2 border-primary bg-blue-50/50 dark:bg-blue-900/20;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .map-canvas {
+            background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+        .dark .map-canvas {
+            background-image: radial-gradient(#334155 0.5px, transparent 0.5px);
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 overflow-hidden">
+<header class="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 flex items-center justify-between sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-white text-xl">query_stats</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">MRIO Chart Builder</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" onclick="toggleDarkMode()">
+<span class="material-symbols-outlined block dark:hidden">dark_mode</span>
+<span class="material-symbols-outlined hidden dark:block text-yellow-400">light_mode</span>
+</button>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+<button class="bg-primary text-white px-4 py-1.5 rounded-md font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">export_notes</span>
+                Export View
+            </button>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">person</span>
+</div>
+</div>
+</header>
+<main class="flex flex-col h-[calc(100vh-3.5rem)]">
+<div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+<div class="flex justify-center border-b border-slate-100 dark:border-slate-800/50">
+<div class="flex gap-1 py-1">
+<button class="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all chart-icon-active" title="Map View">
+<span class="material-symbols-outlined">public</span>
+<span>Map</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all" title="Network Diagram">
+<span class="material-symbols-outlined">hub</span>
+<span>Network</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all" title="Chord Diagram">
+<span class="material-symbols-outlined">incomplete_circle</span>
+<span>Chord</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all" title="Heatmap">
+<span class="material-symbols-outlined">grid_view</span>
+<span>Heatmap</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all" title="Dendrogram">
+<span class="material-symbols-outlined">account_tree</span>
+<span>Dendrogram</span>
+</button>
+</div>
+</div>
+<div class="px-6 py-4 max-w-6xl mx-auto flex flex-wrap justify-center gap-6">
+<div class="flex flex-col gap-1.5 min-w-[200px]">
+<label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Economic Sectors</label>
+<select class="block w-full text-sm border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-md py-2 focus:ring-primary">
+<option>Agriculture &amp; Forestry</option>
+<option>Manufacturing</option>
+<option>Energy Production</option>
+<option>Services &amp; Trade</option>
+<option>Transport &amp; Comm.</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5 min-w-[200px]">
+<label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Final Demand</label>
+<select class="block w-full text-sm border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-md py-2 focus:ring-primary">
+<option>Households</option>
+<option>Government</option>
+<option>Capital Formation</option>
+<option>Export Market</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5 min-w-[200px]">
+<label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Region Cluster</label>
+<select class="block w-full text-sm border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-md py-2 focus:ring-primary">
+<option>OECD Nations</option>
+<option>BRICS+</option>
+<option>European Union</option>
+<option>ASEAN</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5 min-w-[200px]">
+<label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Output</label>
+<select class="block w-full text-sm border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-md py-2 focus:ring-primary">
+<option>Value (USD Billions)</option>
+<option>Volume (Tonnes)</option>
+<option>Energy Units (PJ)</option>
+<option>Emission Impact</option>
+</select>
+</div>
+</div>
+</div>
+<div class="flex-1 p-6 bg-slate-50 dark:bg-slate-950/50 overflow-hidden">
+<div class="w-full h-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative flex flex-col items-center justify-center overflow-hidden map-canvas">
+<div class="absolute top-6 right-6 flex flex-col gap-2 z-20">
+<button class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-primary hover:text-white transition-all group">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300 group-hover:text-white">add</span>
+</button>
+<button class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-primary hover:text-white transition-all group">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300 group-hover:text-white">remove</span>
+</button>
+<div class="h-px w-full bg-slate-200 dark:bg-slate-700 my-1"></div>
+<button class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-primary hover:text-white transition-all group">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300 group-hover:text-white">pan_tool</span>
+</button>
+<button class="p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-primary hover:text-white transition-all group">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300 group-hover:text-white">my_location</span>
+</button>
+</div>
+<div class="absolute top-6 left-6 z-20 pointer-events-none">
+<div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="h-3 w-3 rounded-full bg-primary animate-pulse"></span>
+<h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 tracking-tight">Global Supply Chain Flow</h2>
+</div>
+<div class="space-y-2">
+<p class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">calendar_month</span>
+                                Reporting Period: 2023 Q4
+                            </p>
+<p class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">database</span>
+                                Source: EXIOBASE v3.8.2
+                            </p>
+</div>
+</div>
+</div>
+<div class="w-full h-full relative flex items-center justify-center p-12">
+<div class="relative w-full max-w-5xl aspect-[2/1] opacity-60 dark:opacity-40">
+<img alt="Detailed World Map" class="w-full h-full object-contain filter grayscale dark:invert brightness-95" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiPsod_X7cSMZChaMyi1nX5TUiRpVNdfOXwPHTUaatBdvnuiwhIEcf2hVJABEYnY1_PnQGKMRpueGz-gx_BgGhvGoXVIKLwUAP4-tYVS96OQx4OyPPSEwkn3cvIG1MnOXPPIIFNr2jZ7rXMo7kQiyyFWkjJlbK9ldr4wZ83RaI8_-yZ7l80KT_YYhNgfav3JCxsuDeAP-esdJ_rYZrIL79LBUT9iSLfMrkDCKL_gkADkXa41TM9mPG_3LmYRubgrDyCBw6fUUJlqs"/>
+</div>
+<svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1200 600">
+<defs>
+<filter id="glow">
+<feGaussianBlur result="coloredBlur" stdDeviation="3"></feGaussianBlur>
+<feMerge>
+<feMergeNode in="coloredBlur"></feMergeNode>
+<feMergeNode in="SourceGraphic"></feMergeNode>
+</feMerge>
+</filter>
+<marker id="arrowhead" markerHeight="7" markerWidth="10" orient="auto" refX="0" refY="3.5">
+<polygon fill="currentColor" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+</defs>
+<g fill="none" stroke-linecap="round">
+<path d="M250,320 Q550,50 850,220" opacity="0.8" stroke="#3b82f6" stroke-dasharray="8 4" stroke-width="2"></path>
+<path d="M280,350 Q500,500 920,380" opacity="0.6" stroke="#10b981" stroke-width="3"></path>
+<path d="M550,250 Q750,150 980,180" opacity="0.7" stroke="#f59e0b" stroke-dasharray="4 2" stroke-width="1.5"></path>
+<path d="M180,380 Q250,550 450,480" opacity="0.5" stroke="#8b5cf6" stroke-width="2"></path>
+<path d="M850,250 Q900,100 1050,150" opacity="0.4" stroke="#ef4444" stroke-width="1.5"></path>
+</g>
+<g>
+<circle cx="250" cy="320" fill="#3b82f6" filter="url(#glow)" r="10"></circle>
+<circle cx="850" cy="220" fill="#3b82f6" r="6"></circle>
+<circle cx="920" cy="380" fill="#10b981" filter="url(#glow)" r="12"></circle>
+<circle cx="550" cy="250" fill="#f59e0b" r="5"></circle>
+<circle cx="180" cy="380" fill="#8b5cf6" r="7"></circle>
+<circle cx="1050" cy="150" fill="#ef4444" r="8"></circle>
+</g>
+</svg>
+<div class="absolute top-[280px] left-[260px] bg-slate-900 text-white text-[10px] px-2 py-1 rounded shadow-lg opacity-0 hover:opacity-100 transition-opacity z-10 cursor-default">
+                        North America: Output $18.2T
+                    </div>
+</div>
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-200 dark:border-slate-800 shadow-lg">
+<button class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">play_circle</span> Play Timeline
+                    </button>
+<div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] uppercase font-bold text-slate-400">Layer Opacity</span>
+<input class="w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary" type="range" value="60"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="h-8 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between text-[10px] text-slate-400 font-medium">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live Engine</span>
+<span>MRIO Explorer Workspace v1.2.0</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Lat: 48.8566 N</span>
+<span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Long: 2.3522 E</span>
+<span>FPS: 60.0</span>
+</div>
+</footer>
+
+</body></html>

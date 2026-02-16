@@ -5,23 +5,23 @@ This plan is intentionally detailed at the top and increasingly general lower do
 ## 0. Immediate setup (detailed)
 - [ ] Confirm MVP scope for first chart type.
 - [ ] Confirm accepted input format(s) for v1.
-- [ ] Freeze core type names (`NodeId`, `NodeMeta`, `SparseMatrixCSR`, `SparseMatrixCSC`, `SparseMatrixStore`).
-- [ ] Add baseline TypeScript config and lint formatting defaults.
+- [x] Freeze core type names (`NodeId`, `NodeMeta`, `SparseMatrixCSR`, `SparseMatrixCSC`, `SparseMatrixStore`).
+- [x] Add baseline TypeScript config and lint formatting defaults.
 - [ ] Add a tiny synthetic fixture + one medium fixture.
 
 ## 1. Data and ingestion (detailed)
-- [ ] Implement metadata map ingestion with uniqueness checks.
-- [ ] Implement sparse matrix ingestion parser and construct both CSR and CSC formats.
-- [ ] Validate matrix dimensions and key consistency.
-- [ ] Build a normalized in-memory dataset object.
-- [ ] Add one smoke test for ingestion success/failure cases.
+- [x] Implement metadata map ingestion with uniqueness checks.
+- [x] Implement sparse matrix ingestion parser and construct both CSR and CSC formats.
+- [x] Validate matrix dimensions and key consistency.
+- [x] Build a normalized in-memory dataset object.
+- [x] Add one smoke test for ingestion success/failure cases.
 
 ## 2. Core math (detailed)
-- [ ] Implement row normalization for A matrix.
-- [ ] Define behavior for zero rows.
+- [x] Implement row normalization for A matrix.
+- [x] Define behavior for zero rows.
 - [ ] Implement eager Leontief compute pipeline with default degree/order 20.
 - [ ] Implement eager eigen pipeline at dataset load.
-- [ ] Add focused tests for A matrix invariants.
+- [x] Add focused tests for A matrix invariants.
 
 ## 3. Filter MVP (detailed)
 - [ ] Define compact grammar for text filters.

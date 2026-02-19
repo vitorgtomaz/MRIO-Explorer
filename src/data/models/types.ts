@@ -35,6 +35,14 @@ export interface SparseMatrixStore {
   csc: SparseMatrixCSC;
 }
 
+
+export interface DominantEigenResult {
+  value: number;
+  vector: Float64Array<ArrayBufferLike>;
+  iterations: number;
+  converged: boolean;
+}
+
 export interface RawDatasetInput {
   version: '1.0';
   nodes: NodeMeta[];
@@ -50,4 +58,5 @@ export interface Dataset {
   nodeOrder: NodeId[];
   nodeMetaById: Map<NodeId, NodeMeta>;
   matrix: SparseMatrixStore;
+  eigen: DominantEigenResult;
 }

@@ -27,7 +27,24 @@ afterEach(() => {
 
 describe('ingestDataset', () => {
   it('builds both CSR and CSC sparse matrix stores', () => {
+    console.log('[ingestDataset] Starting: builds both CSR and CSC sparse matrix stores');
     const dataset = ingestDataset(baseInput);
+    console.log('[ingestDataset] nodeOrder:', dataset.nodeOrder);
+    console.log('[ingestDataset] CSR:', {
+      rowPtr: Array.from(dataset.matrix.csr.rowPtr),
+      colIdx: Array.from(dataset.matrix.csr.colIdx),
+      values: Array.from(dataset.matrix.csr.values),
+    });
+    console.log('[ingestDataset] CSC:', {
+      colPtr: Array.from(dataset.matrix.csc.colPtr),
+      rowIdx: Array.from(dataset.matrix.csc.rowIdx),
+      values: Array.from(dataset.matrix.csc.values),
+    });
+    console.log('[ingestDataset] Eigen:', {
+      converged: dataset.eigen.converged,
+      value: dataset.eigen.value,
+      iterations: dataset.eigen.iterations,
+    });
 
     expect(dataset.nodeOrder).toEqual(['A', 'B', 'C']);
     expect(dataset.matrix.csr.rowPtr).toEqual(Uint32Array.from([0, 1, 2, 3]));
@@ -40,6 +57,7 @@ describe('ingestDataset', () => {
   });
 
   it('throws when duplicate matrix coordinates are present', () => {
+    console.log('[ingestDataset] Starting: throws when duplicate matrix coordinates are present');
     const input: RawDatasetInput = {
       ...baseInput,
       matrix: {
@@ -57,6 +75,7 @@ describe('ingestDataset', () => {
   });
 
   it('warns and removes negative entries from sparse store', () => {
+    console.log('[ingestDataset] Starting: warns and removes negative entries from sparse store');
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     const input: RawDatasetInput = {
@@ -73,6 +92,11 @@ describe('ingestDataset', () => {
     };
 
     const dataset = ingestDataset(input);
+    console.log('[ingestDataset] Warning scenario CSR:', {
+      rowPtr: Array.from(dataset.matrix.csr.rowPtr),
+      colIdx: Array.from(dataset.matrix.csr.colIdx),
+      values: Array.from(dataset.matrix.csr.values),
+    });
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(dataset.matrix.csr.rowPtr).toEqual(Uint32Array.from([0, 0, 1, 2]));
@@ -81,6 +105,7 @@ describe('ingestDataset', () => {
   });
 
   it('throws for duplicate node ids', () => {
+    console.log('[ingestDataset] Starting: throws for duplicate node ids');
     const input: RawDatasetInput = {
       ...baseInput,
       nodes: [
@@ -94,6 +119,7 @@ describe('ingestDataset', () => {
   });
 
   it('throws for dimension mismatches', () => {
+    console.log('[ingestDataset] Starting: throws for dimension mismatches');
     const input: RawDatasetInput = {
       ...baseInput,
       matrix: {
@@ -106,6 +132,7 @@ describe('ingestDataset', () => {
   });
 
   it('throws for unsupported dataset versions', () => {
+    console.log('[ingestDataset] Starting: throws for unsupported dataset versions');
     const input = {
       ...baseInput,
       version: '2.0',

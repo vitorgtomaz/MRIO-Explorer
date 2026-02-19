@@ -20,6 +20,7 @@ function matrixToDense(csr: SparseMatrixCSR): number[][] {
 
 describe('computeLeontiefSeries', () => {
   it('computes I + A + A^2 for a small sparse matrix', () => {
+    console.log('[computeLeontiefSeries] Starting: computes I + A + A^2 for a small sparse matrix');
     const normalizedA: SparseMatrixCSR = {
       rows: 2,
       cols: 2,
@@ -30,6 +31,8 @@ describe('computeLeontiefSeries', () => {
 
     const result = computeLeontiefSeries(normalizedA, { order: 2 });
     const dense = matrixToDense(result.matrix);
+    console.log('[computeLeontiefSeries] Result order:', result.order);
+    console.log('[computeLeontiefSeries] Dense matrix:', dense);
 
     expect(result.order).toBe(2);
     expect(dense[0][0]).toBeCloseTo(1.125);
@@ -39,6 +42,7 @@ describe('computeLeontiefSeries', () => {
   });
 
   it('returns identity for order 0', () => {
+    console.log('[computeLeontiefSeries] Starting: returns identity for order 0');
     const normalizedA: SparseMatrixCSR = {
       rows: 2,
       cols: 2,
@@ -48,12 +52,16 @@ describe('computeLeontiefSeries', () => {
     };
 
     const result = computeLeontiefSeries(normalizedA, { order: 0 });
+    console.log('[computeLeontiefSeries] Identity result rowPtr:', Array.from(result.matrix.rowPtr));
+    console.log('[computeLeontiefSeries] Identity result colIdx:', Array.from(result.matrix.colIdx));
+    console.log('[computeLeontiefSeries] Identity result values:', Array.from(result.matrix.values));
     expect(result.matrix.rowPtr).toEqual(Uint32Array.from([0, 1, 2]));
     expect(result.matrix.colIdx).toEqual(Uint32Array.from([0, 1]));
     expect(result.matrix.values).toEqual(Float64Array.from([1, 1]));
   });
 
   it('normalizes rows when using flow matrix convenience pipeline', () => {
+    console.log('[computeLeontiefFromFlowMatrix] Starting: normalizes rows when using flow matrix convenience pipeline');
     const flowMatrix: SparseMatrixCSR = {
       rows: 2,
       cols: 2,
@@ -64,6 +72,7 @@ describe('computeLeontiefSeries', () => {
 
     const direct = computeLeontiefFromFlowMatrix(flowMatrix, { order: 1 });
     const dense = matrixToDense(direct.matrix);
+    console.log('[computeLeontiefFromFlowMatrix] Dense matrix:', dense);
 
     expect(dense[0][0]).toBeCloseTo(1);
     expect(dense[0][1]).toBeCloseTo(1);
@@ -72,6 +81,7 @@ describe('computeLeontiefSeries', () => {
   });
 
   it('throws for invalid order', () => {
+    console.log('[computeLeontiefSeries] Starting: throws for invalid order');
     const normalizedA: SparseMatrixCSR = {
       rows: 1,
       cols: 1,

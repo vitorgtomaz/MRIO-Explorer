@@ -8,6 +8,7 @@ import type { SparseMatrixCSR } from '../src/data/models/types.js';
 
 describe('computeDominantEigenpair', () => {
   it('returns dominant eigenpair for a simple diagonal matrix', () => {
+    console.log('[computeDominantEigenpair] Starting: returns dominant eigenpair for a simple diagonal matrix');
     const normalizedA: SparseMatrixCSR = {
       rows: 2,
       cols: 2,
@@ -21,6 +22,13 @@ describe('computeDominantEigenpair', () => {
       tolerance: 1e-10,
     });
 
+    console.log('[computeDominantEigenpair] Result:', {
+      converged: result.converged,
+      value: result.value,
+      vector: Array.from(result.vector),
+      iterations: result.iterations,
+    });
+
     expect(result.converged).toBe(true);
     expect(result.value).toBeCloseTo(2, 6);
     expect(result.vector[0]).toBeCloseTo(1, 4);
@@ -28,6 +36,7 @@ describe('computeDominantEigenpair', () => {
   });
 
   it('normalizes rows for the flow-matrix convenience pipeline', () => {
+    console.log('[computeDominantEigenFromFlowMatrix] Starting: normalizes rows for the flow-matrix convenience pipeline');
     const flowMatrix: SparseMatrixCSR = {
       rows: 2,
       cols: 2,
@@ -37,12 +46,26 @@ describe('computeDominantEigenpair', () => {
     };
 
     const result = computeDominantEigenFromFlowMatrix(flowMatrix);
+    console.log('[computeDominantEigenFromFlowMatrix] Result:', {
+      converged: result.converged,
+      value: result.value,
+      vector: Array.from(result.vector),
+      iterations: result.iterations,
+    });
+
+    console.log('[computeDominantEigenpair] Result:', {
+      converged: result.converged,
+      value: result.value,
+      vector: Array.from(result.vector),
+      iterations: result.iterations,
+    });
 
     expect(result.converged).toBe(true);
     expect(result.value).toBeCloseTo(1, 6);
   });
 
   it('throws for invalid options', () => {
+    console.log('[computeDominantEigenpair] Starting: throws for invalid options');
     const normalizedA: SparseMatrixCSR = {
       rows: 1,
       cols: 1,

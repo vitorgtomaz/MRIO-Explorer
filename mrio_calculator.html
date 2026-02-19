@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MRIO Mini Calculator</title>
+    <style>
+      :root { font-family: Arial, sans-serif; color-scheme: light; }
+      body { margin: 24px; max-width: 1100px; }
+      h1 { margin-bottom: 8px; }
+      .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+      label { font-size: 0.95rem; }
+      input[type='number'] { width: 88px; padding: 4px; }
+      button { padding: 8px 14px; cursor: pointer; }
+      .matrix-wrap { overflow-x: auto; margin-bottom: 20px; }
+      table { border-collapse: collapse; }
+      td, th { border: 1px solid #c9c9c9; padding: 4px 6px; text-align: right; }
+      th { background: #f3f4f6; }
+      .matrix-input { width: 76px; }
+      .results { display: grid; gap: 20px; }
+      .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+      .muted { color: #6b7280; font-size: 0.9rem; }
+      .error { color: #b91c1c; font-weight: 600; }
+      .ok { color: #065f46; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>MRIO Mini Calculator</h1>
+    <p class="muted">Enter a square flow matrix (max 10x10). The app computes row-normalized A, a truncated Leontief series (I + A + ... + A^k), and the dominant eigenpair.</p>
+
+    <section class="controls">
+      <label>
+        Dimension
+        <input id="dimension" type="number" min="1" max="10" value="3" />
+      </label>
+      <label>
+        Leontief order (k)
+        <input id="order" type="number" min="0" max="40" value="12" />
+      </label>
+      <label>
+        Max eigen iterations
+        <input id="iterations" type="number" min="1" max="5000" value="200" />
+      </label>
+      <label>
+        Eigen tolerance
+        <input id="tolerance" type="number" min="0.0000000001" step="0.00000001" value="0.000001" />
+      </label>
+      <button id="resize">Resize Matrix</button>
+      <button id="calculate">Run Calculations</button>
+      <button id="sample">Load Sample</button>
+    </section>
+
+    <section>
+      <h2>Flow Matrix (Z)</h2>
+      <div class="matrix-wrap" id="matrixContainer"></div>
+    </section>
+
+    <section class="results">
+      <div class="card">
+        <h3>Status</h3>
+        <div id="status" class="muted">Ready.</div>
+      </div>
+      <div class="card">
+        <h3>Row-normalized matrix (A)</h3>
+        <div class="matrix-wrap" id="normalizedOutput"></div>
+      </div>
+      <div class="card">
+        <h3>Leontief series approximation</h3>
+        <div class="muted" id="leontiefMeta"></div>
+        <div class="matrix-wrap" id="leontiefOutput"></div>
+      </div>
+      <div class="card">
+        <h3>Dominant eigenpair (power iteration)</h3>
+        <div id="eigenMeta" class="muted"></div>
+        <div class="matrix-wrap" id="eigenVectorOutput"></div>
+      </div>
+    </section>
+
+    <script type="module">
+      const dimensionInput = document.getElementById('dimension');
+      const orderInput = document.getElementById('order');
+      const iterationsInput = document.getElementById('iterations');
+      const toleranceInput = document.getElementById('tolerance');
+      const matrixContainer = document.getElementById('matrixContainer');
+      const statusEl = document.getElementById('status');
+      const normalizedOutput = document.getElementById('normalizedOutput');
+      const leontiefOutput = document.getElementById('leontiefOutput');
+      const leontiefMeta = document.getElementById('leontiefMeta');
+      const eigenMeta = document.getElementById('eigenMeta');
+      const eigenVectorOutput = document.getElementById('eigenVectorOutput');
+
+      function clampDimension(value) {
+        if (!Number.isFinite(value)) return 1;
+        return Math.max(1, Math.min(10, Math.floor(value)));
+      }
+
+      function identityMatrix(size) {
+        const out = Array.from({ length: size }, () => Array(size).fill(0));
+        for (let i = 0; i < size; i += 1) out[i][i] = 1;
+        return out;
+      }
+
+      function matrixAdd(left, right) {
+        return left.map((row, i) => row.map((v, j) => v + right[i][j]));
+      }
+
+      function matrixMultiply(left, right) {
+        const n = left.length;
+        const out = Array.from({ length: n }, () => Array(n).fill(0));
+
+        for (let r = 0; r < n; r += 1) {
+          for (let k = 0; k < n; k += 1) {
+            if (left[r][k] === 0) continue;
+            for (let c = 0; c < n; c += 1) {
+              out[r][c] += left[r][k] * right[k][c];
+            }
+          }
+        }
+
+        return out;
+      }
+
+      function normalizeRows(matrix) {
+        return matrix.map((row) => {
+          const rowSum = row.reduce((sum, value) => sum + value, 0);
+          if (rowSum === 0) return row.map(() => 0);
+          return row.map((value) => value / rowSum);
+        });
+      }
+
+      function leontiefSeries(normalized, order) {
+        const n = normalized.length;
+        let sum = identityMatrix(n);
+        let power = identityMatrix(n);
+
+        for (let step = 1; step <= order; step += 1) {
+          power = matrixMultiply(power, normalized);
+          sum = matrixAdd(sum, power);
+        }
+
+        return sum;
+      }
+
+      function multiplyMatrixVector(matrix, vector) {
+        return matrix.map((row) => row.reduce((sum, value, i) => sum + value * vector[i], 0));
+      }
+
+      function normalizeVector(vector) {
+        const norm = Math.hypot(...vector);
+        if (norm === 0) return [...vector];
+        return vector.map((value) => value / norm);
+      }
+
+      function maxDelta(a, b) {
+        let max = 0;
+        for (let i = 0; i < a.length; i += 1) {
+          max = Math.max(max, Math.abs(a[i] - b[i]));
+        }
+        return max;
+      }
+
+      function rayleighQuotient(matrix, vector) {
+        const multiplied = multiplyMatrixVector(matrix, vector);
+        let numerator = 0;
+        let denominator = 0;
+
+        for (let i = 0; i < vector.length; i += 1) {
+          numerator += vector[i] * multiplied[i];
+          denominator += vector[i] * vector[i];
+        }
+
+        return denominator === 0 ? 0 : numerator / denominator;
+      }
+
+      function dominantEigen(matrix, maxIterations, tolerance) {
+        const n = matrix.length;
+        let vector = Array.from({ length: n }, () => 1 / Math.sqrt(n));
+        let converged = false;
+        let iterations = 0;
+
+        for (let step = 1; step <= maxIterations; step += 1) {
+          const next = normalizeVector(multiplyMatrixVector(matrix, vector));
+          const delta = maxDelta(next, vector);
+          vector = next;
+          iterations = step;
+
+          if (delta <= tolerance) {
+            converged = true;
+            break;
+          }
+        }
+
+        return {
+          value: rayleighQuotient(matrix, vector),
+          vector,
+          iterations,
+          converged,
+        };
+      }
+
+      function renderMatrixInput(size, values) {
+        const table = document.createElement('table');
+        const header = document.createElement('tr');
+        header.appendChild(document.createElement('th'));
+        for (let c = 0; c < size; c += 1) {
+          const th = document.createElement('th');
+          th.textContent = `C${c + 1}`;
+          header.appendChild(th);
+        }
+        table.appendChild(header);
+
+        for (let r = 0; r < size; r += 1) {
+          const tr = document.createElement('tr');
+          const rowLabel = document.createElement('th');
+          rowLabel.textContent = `R${r + 1}`;
+          tr.appendChild(rowLabel);
+
+          for (let c = 0; c < size; c += 1) {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = '0.01';
+            input.className = 'matrix-input';
+            input.dataset.row = String(r);
+            input.dataset.col = String(c);
+            input.value = String(values?.[r]?.[c] ?? 0);
+            td.appendChild(input);
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+
+        matrixContainer.replaceChildren(table);
+      }
+
+      function getMatrixValues() {
+        const size = clampDimension(Number(dimensionInput.value));
+        const matrix = Array.from({ length: size }, () => Array(size).fill(0));
+
+        const inputs = matrixContainer.querySelectorAll('input.matrix-input');
+        inputs.forEach((input) => {
+          const row = Number(input.dataset.row);
+          const col = Number(input.dataset.col);
+          const value = Number(input.value);
+          matrix[row][col] = Number.isFinite(value) ? value : 0;
+        });
+
+        return matrix;
+      }
+
+      function renderNumberMatrix(container, matrix, digits = 4) {
+        const table = document.createElement('table');
+
+        for (let r = 0; r < matrix.length; r += 1) {
+          const tr = document.createElement('tr');
+          for (let c = 0; c < matrix[r].length; c += 1) {
+            const td = document.createElement('td');
+            td.textContent = matrix[r][c].toFixed(digits);
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+
+        container.replaceChildren(table);
+      }
+
+      function renderVector(container, vector, digits = 6) {
+        const table = document.createElement('table');
+        for (let i = 0; i < vector.length; i += 1) {
+          const tr = document.createElement('tr');
+          const name = document.createElement('th');
+          name.textContent = `v${i + 1}`;
+          const value = document.createElement('td');
+          value.textContent = vector[i].toFixed(digits);
+          tr.append(name, value);
+          table.appendChild(tr);
+        }
+        container.replaceChildren(table);
+      }
+
+      function runCalculations() {
+        try {
+          const matrix = getMatrixValues();
+          const order = Math.max(0, Math.floor(Number(orderInput.value) || 0));
+          const maxIterations = Math.max(1, Math.floor(Number(iterationsInput.value) || 1));
+          const tolerance = Number(toleranceInput.value);
+
+          if (!Number.isFinite(tolerance) || tolerance <= 0) {
+            throw new Error('Tolerance must be a positive number.');
+          }
+
+          const normalized = normalizeRows(matrix);
+          const leontief = leontiefSeries(normalized, order);
+          const eigen = dominantEigen(normalized, maxIterations, tolerance);
+
+          renderNumberMatrix(normalizedOutput, normalized);
+          renderNumberMatrix(leontiefOutput, leontief);
+          renderVector(eigenVectorOutput, eigen.vector);
+
+          leontiefMeta.textContent = `Computed with order k=${order}.`;
+          eigenMeta.textContent = `Eigenvalue ≈ ${eigen.value.toFixed(8)} | iterations: ${eigen.iterations} | converged: ${eigen.converged}`;
+          statusEl.textContent = 'Calculation completed.';
+          statusEl.className = 'ok';
+        } catch (error) {
+          statusEl.textContent = error instanceof Error ? error.message : 'Unknown error';
+          statusEl.className = 'error';
+        }
+      }
+
+      document.getElementById('resize').addEventListener('click', () => {
+        const size = clampDimension(Number(dimensionInput.value));
+        dimensionInput.value = String(size);
+        const old = getMatrixValues();
+        const resized = Array.from({ length: size }, (_, r) =>
+          Array.from({ length: size }, (_, c) => old[r]?.[c] ?? 0),
+        );
+        renderMatrixInput(size, resized);
+      });
+
+      document.getElementById('calculate').addEventListener('click', runCalculations);
+
+      document.getElementById('sample').addEventListener('click', () => {
+        const sample = [
+          [20, 5, 3],
+          [4, 18, 7],
+          [2, 6, 15],
+        ];
+        dimensionInput.value = '3';
+        renderMatrixInput(3, sample);
+        runCalculations();
+      });
+
+      renderMatrixInput(3, [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ]);
+    </script>
+  </body>
+</html>

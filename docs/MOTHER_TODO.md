@@ -20,7 +20,7 @@ This plan is intentionally detailed at the top and increasingly general lower do
 - [x] Implement row normalization for A matrix.
 - [x] Define behavior for zero rows.
 - [x] Implement eager Leontief compute pipeline with default degree/order 20.
-- [ ] Implement eager eigen pipeline at dataset load.
+- [x] Implement eager eigen pipeline at dataset load.
 - [x] Add focused tests for A matrix invariants.
 
 ## 3. Filter MVP (detailed)

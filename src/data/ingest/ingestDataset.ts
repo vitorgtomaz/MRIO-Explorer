@@ -1,3 +1,4 @@
+import { computeDominantEigenFromFlowMatrix } from '../../engine/eigen.js';
 import {
   type Dataset,
   type NodeMeta,
@@ -163,13 +164,16 @@ export function ingestDataset(input: RawDatasetInput): Dataset {
   assertNoDuplicateCoordinates(sortedEntries);
   const normalizedEntries = sanitizeValues(sortedEntries);
 
+  const csr = buildCSR(matrix.rows, matrix.cols, normalizedEntries);
+
   return {
     version: input.version,
     nodeOrder: nodes.map((node) => node.id),
     nodeMetaById: new Map(nodes.map((node) => [node.id, node])),
     matrix: {
-      csr: buildCSR(matrix.rows, matrix.cols, normalizedEntries),
+      csr,
       csc: buildCSC(matrix.rows, matrix.cols, normalizedEntries),
     },
+    eigen: computeDominantEigenFromFlowMatrix(csr),
   };
 }

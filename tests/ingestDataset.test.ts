@@ -35,6 +35,8 @@ describe('ingestDataset', () => {
 
     expect(dataset.matrix.csc.colPtr).toEqual(Uint32Array.from([0, 1, 2, 3]));
     expect(dataset.matrix.csc.rowIdx).toEqual(Uint32Array.from([2, 0, 1]));
+    expect(dataset.eigen.converged).toBe(true);
+    expect(dataset.eigen.value).toBeCloseTo(1, 6);
   });
 
   it('throws when duplicate matrix coordinates are present', () => {

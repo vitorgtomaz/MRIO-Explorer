@@ -24,11 +24,11 @@ This plan is intentionally detailed at the top and increasingly general lower do
 - [x] Add focused tests for A matrix invariants.
 
 ## 3. Filter MVP (detailed)
-- [ ] Define compact grammar for text filters.
-- [ ] Implement tokenizer + parser.
-- [ ] Compile filter AST to evaluator.
-- [ ] Add user-facing invalid filter errors.
-- [ ] Add unit tests for key filter cases.
+- [x] Define compact grammar for text filters.
+- [x] Implement tokenizer + parser.
+- [x] Compile filter AST to evaluator.
+- [x] Add user-facing invalid filter errors.
+- [x] Add unit tests for key filter cases.
 
 ## 4. Chart builder core + first chart (detailed)
 - [ ] Implement chart-agnostic view model creator.
@@ -69,4 +69,3 @@ This plan is intentionally detailed at the top and increasingly general lower do
 - [ ] Evaluate WASM acceleration only if JS+worker path becomes limiting.
 - [ ] Consider collaborative features and saved analysis sessions.
 - [ ] Consider larger ecosystem integration once MVP is stable.
-

@@ -31,8 +31,8 @@ This plan is intentionally detailed at the top and increasingly general lower do
 - [ ] Add unit tests for key filter cases.
 
 ## 4. Chart builder core + first chart (detailed)
-- [ ] Implement chart-agnostic view model creator.
-- [ ] Implement node click-to-focus neighborhood extraction.
+- [x] Implement chart-agnostic view model creator.
+- [x] Implement node click-to-focus neighborhood extraction.
 - [ ] Build first chart adapter.
 - [ ] Wire hover/click/select interactions.
 - [ ] Add simple side panel for selected node details.

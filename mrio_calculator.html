@@ -198,6 +198,18 @@
         };
       }
 
+      function replaceWithNode(container, node) {
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+        container.appendChild(node);
+      }
+
+      function getValue(values, row, col) {
+        if (!values || !values[row]) return 0;
+        return values[row][col] ?? 0;
+      }
+
       function renderMatrixInput(size, values) {
         const table = document.createElement('table');
         const header = document.createElement('tr');
@@ -223,14 +235,14 @@
             input.className = 'matrix-input';
             input.dataset.row = String(r);
             input.dataset.col = String(c);
-            input.value = String(values?.[r]?.[c] ?? 0);
+            input.value = String(getValue(values, r, c));
             td.appendChild(input);
             tr.appendChild(td);
           }
           table.appendChild(tr);
         }
 
-        matrixContainer.replaceChildren(table);
+        replaceWithNode(matrixContainer, table);
       }
 
       function getMatrixValues() {
@@ -261,7 +273,7 @@
           table.appendChild(tr);
         }
 
-        container.replaceChildren(table);
+        replaceWithNode(container, table);
       }
 
       function renderVector(container, vector, digits = 6) {
@@ -272,10 +284,11 @@
           name.textContent = `v${i + 1}`;
           const value = document.createElement('td');
           value.textContent = vector[i].toFixed(digits);
-          tr.append(name, value);
+          tr.appendChild(name);
+          tr.appendChild(value);
           table.appendChild(tr);
         }
-        container.replaceChildren(table);
+        replaceWithNode(container, table);
       }
 
       function runCalculations() {
@@ -312,7 +325,7 @@
         dimensionInput.value = String(size);
         const old = getMatrixValues();
         const resized = Array.from({ length: size }, (_, r) =>
-          Array.from({ length: size }, (_, c) => old[r]?.[c] ?? 0),
+          Array.from({ length: size }, (_, c) => getValue(old, r, c)),
         );
         renderMatrixInput(size, resized);
       });

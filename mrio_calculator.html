@@ -322,8 +322,8 @@
 
       document.getElementById('resize').addEventListener('click', () => {
         const size = clampDimension(Number(dimensionInput.value));
-        dimensionInput.value = String(size);
         const old = getMatrixValues();
+        dimensionInput.value = String(size);
         const resized = Array.from({ length: size }, (_, r) =>
           Array.from({ length: size }, (_, c) => getValue(old, r, c)),
         );

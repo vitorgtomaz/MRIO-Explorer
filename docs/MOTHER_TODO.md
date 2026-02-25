@@ -33,7 +33,7 @@ This plan is intentionally detailed at the top and increasingly general lower do
 ## 4. Chart builder core + first chart (detailed)
 - [x] Implement chart-agnostic view model creator.
 - [x] Implement node click-to-focus neighborhood extraction.
-- [ ] Build first chart adapter.
+- [x] Build first chart adapter (D3 force-directed graph).
 - [ ] Wire hover/click/select interactions.
 - [ ] Add simple side panel for selected node details.
 
@@ -51,21 +51,37 @@ This plan is intentionally detailed at the top and increasingly general lower do
 - [ ] Add minimal persistence for user settings if useful.
 
 ## 7. Additional chart support (general)
-- [ ] Add second and third chart types through adapters.
+- [ ] Add chord diagram adapter.
+- [ ] Add heatmap adapter.
+- [ ] Add dendrogram adapter.
+- [ ] Add geographic map adapter.
 - [ ] Reuse core view model and interaction primitives.
 - [ ] Keep chart-specific logic isolated.
 
-## 8. Performance improvements (general)
+## 8. App shell and UI components (general)
+- [ ] Build app shell with routing and top-level state providers (`src/app/`).
+- [ ] Build Chart Builder panel (chart type selector, filter input, canvas wrapper).
+- [ ] Build node detail side panel (shown on click/select).
+- [ ] Build filter input widget with inline syntax error display.
+- [ ] Implement state slices: dataset, filters, selection, hover, focus, chart config (`src/state/`).
+
+## 9. Data loading UI (general)
+- [ ] File upload input for JSON datasets.
+- [ ] CSV import adapter and parser.
+- [ ] In-browser validation feedback during upload.
+- [ ] Add sample fixture datasets (`src/data/fixtures/`).
+
+## 10. Performance improvements (general)
 - [ ] Profile real datasets and identify hot paths.
 - [ ] Optimize only measured bottlenecks.
 - [ ] Introduce incremental rendering and thresholds as needed.
 
-## 9. Reliability and maintainability (general)
+## 11. Reliability and maintainability (general)
 - [ ] Keep modules small and replaceable.
 - [ ] Refactor gradually when pain points appear.
 - [ ] Expand tests only where defects are recurring.
 
-## 10. Future evolution (high-level)
+## 12. Future evolution (high-level)
 - [ ] Evaluate WASM acceleration only if JS+worker path becomes limiting.
 - [ ] Consider collaborative features and saved analysis sessions.
 - [ ] Consider larger ecosystem integration once MVP is stable.

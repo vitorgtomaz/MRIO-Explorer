@@ -1,16 +1,10 @@
-import type { SparseMatrixCSR } from '../data/models/types.js';
+import type { DominantEigenResult, SparseMatrixCSR } from '../data/models/types.js';
 import { normalizeRows } from './normalizeRows.js';
+import { multiplyCSRByVector, normalizeVector } from './sparseOps.js';
 
 export interface DominantEigenOptions {
   maxIterations?: number;
   tolerance?: number;
-}
-
-export interface DominantEigenResult {
-  value: number;
-  vector: Float64Array<ArrayBufferLike>;
-  iterations: number;
-  converged: boolean;
 }
 
 function assertSquare(csr: SparseMatrixCSR): void {
@@ -34,44 +28,6 @@ function normalizeOptions(options?: DominantEigenOptions): Required<DominantEige
   return { maxIterations, tolerance };
 }
 
-function l2Norm(values: Float64Array): number {
-  let sum = 0;
-  for (let i = 0; i < values.length; i += 1) {
-    sum += values[i] * values[i];
-  }
-
-  return Math.sqrt(sum);
-}
-
-function normalizeVector(values: Float64Array): Float64Array {
-  const norm = l2Norm(values);
-  const out = new Float64Array(values.length);
-
-  if (norm === 0) {
-    out.set(values);
-    return out;
-  }
-  for (let i = 0; i < values.length; i += 1) {
-    out[i] = values[i] / norm;
-  }
-
-  return out;
-}
-
-function multiplyCSRByVector(csr: SparseMatrixCSR, vector: Float64Array): Float64Array {
-  const out = new Float64Array(csr.rows);
-
-  for (let row = 0; row < csr.rows; row += 1) {
-    let sum = 0;
-    for (let idx = csr.rowPtr[row]; idx < csr.rowPtr[row + 1]; idx += 1) {
-      sum += csr.values[idx] * vector[csr.colIdx[idx]];
-    }
-    out[row] = sum;
-  }
-
-  return out;
-}
-
 function rayleighQuotient(csr: SparseMatrixCSR, vector: Float64Array): number {
   const multiplied = multiplyCSRByVector(csr, vector);
   let numerator = 0;
@@ -82,11 +38,7 @@ function rayleighQuotient(csr: SparseMatrixCSR, vector: Float64Array): number {
     denominator += vector[i] * vector[i];
   }
 
-  if (denominator === 0) {
-    return 0;
-  }
-
-  return numerator / denominator;
+  return denominator === 0 ? 0 : numerator / denominator;
 }
 
 /**
@@ -106,8 +58,7 @@ export function computeDominantEigenpair(
   let iterations = 0;
 
   for (let step = 1; step <= maxIterations; step += 1) {
-    const nextRaw = multiplyCSRByVector(normalizedA, vector);
-    const nextVector = normalizeVector(nextRaw);
+    const nextVector = normalizeVector(multiplyCSRByVector(normalizedA, vector));
 
     let maxDelta = 0;
     for (let i = 0; i < nextVector.length; i += 1) {

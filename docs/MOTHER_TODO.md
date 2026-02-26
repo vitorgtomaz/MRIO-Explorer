@@ -54,11 +54,12 @@ This plan keeps immediate work detailed and execution-oriented, with later phase
 - [x] Add unit tests for key filter cases.
 - [ ] Add metadata-field discovery UX so all metadata keys are visibly filterable.
 
-## 5. Chart roadmap and specs (detailed)
-- [x] Chart roadmap order documented: network, sankey (sector→sector and region→region), spy (L view), histogram, circular packing, chord.
-- [x] Add histogram specification document.
-- [x] Add network view specification document (depth `n=5`, click-focus recenter).
-- [ ] Reconcile roadmap ordering with first implementation priority (histogram first, then network).
+## 4. Chart builder core + first chart (detailed)
+- [x] Implement chart-agnostic view model creator.
+- [x] Implement node click-to-focus neighborhood extraction.
+- [x] Build first chart adapter (D3 force-directed graph).
+- [ ] Wire hover/click/select interactions.
+- [ ] Add simple side panel for selected node details.
 
 ## 6. First interactive chart delivery — histogram (very detailed)
 - [ ] Implement histogram adapter + renderer.
@@ -74,20 +75,38 @@ This plan keeps immediate work detailed and execution-oriented, with later phase
 - [ ] Keep hover detail behavior specified (sector, region, value) but not required for strict v1 scope.
 - [ ] Add scalability smoke test for sparse graph traversal.
 
-## 8. UX and state (detailed)
-- [ ] Improve loading and empty states.
-- [ ] Add compute-progress messaging and precision-cost hints.
-- [ ] Keep persistence between sessions in backlog until click-focus v1 stabilizes.
+## 7. Additional chart support (general)
+- [ ] Add chord diagram adapter.
+- [ ] Add heatmap adapter.
+- [ ] Add dendrogram adapter.
+- [ ] Add geographic map adapter.
+- [ ] Reuse core view model and interaction primitives.
+- [ ] Keep chart-specific logic isolated.
 
-## 9. Additional chart support (semi-detailed)
-- [ ] Implement sankey (sector→sector).
-- [ ] Implement sankey (region→region).
-- [ ] Implement spy view for Leontief matrix visualization.
-- [ ] Implement circular packing.
-- [ ] Implement chord diagram.
+## 8. App shell and UI components (general)
+- [ ] Build app shell with routing and top-level state providers (`src/app/`).
+- [ ] Build Chart Builder panel (chart type selector, filter input, canvas wrapper).
+- [ ] Build node detail side panel (shown on click/select).
+- [ ] Build filter input widget with inline syntax error display.
+- [ ] Implement state slices: dataset, filters, selection, hover, focus, chart config (`src/state/`).
 
-## 10. Reliability and maintainability (semi-detailed)
+## 9. Data loading UI (general)
+- [ ] File upload input for JSON datasets.
+- [ ] CSV import adapter and parser.
+- [ ] In-browser validation feedback during upload.
+- [ ] Add sample fixture datasets (`src/data/fixtures/`).
+
+## 10. Performance improvements (general)
+- [ ] Profile real datasets and identify hot paths.
+- [ ] Optimize only measured bottlenecks.
+- [ ] Introduce incremental rendering and thresholds as needed.
+
+## 11. Reliability and maintainability (general)
 - [ ] Keep modules small and replaceable.
 - [ ] Refactor gradually when pain points appear.
 - [ ] Expand tests only where defects are recurring.
-- [ ] Reduce test log noise for cleaner CI output.
+
+## 12. Future evolution (high-level)
+- [ ] Evaluate WASM acceleration only if JS+worker path becomes limiting.
+- [ ] Consider collaborative features and saved analysis sessions.
+- [ ] Consider larger ecosystem integration once MVP is stable.

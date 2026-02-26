@@ -77,6 +77,12 @@
     </section>
 
     <script type="module">
+      import { csrFromDense, denseFromCSR, transposeCSR } from './dist/engine/sparseOps.js';
+      import { normalizeRows } from './dist/engine/normalizeRows.js';
+      import { computeLeontiefSeries } from './dist/engine/leontief.js';
+      import { computeDominantEigenpair } from './dist/engine/eigen.js';
+
+      // --- DOM references ---
       const dimensionInput = document.getElementById('dimension');
       const orderInput = document.getElementById('order');
       const iterationsInput = document.getElementById('iterations');
@@ -94,114 +100,10 @@
         return Math.max(1, Math.min(10, Math.floor(value)));
       }
 
-      function identityMatrix(size) {
-        const out = Array.from({ length: size }, () => Array(size).fill(0));
-        for (let i = 0; i < size; i += 1) out[i][i] = 1;
-        return out;
-      }
-
-      function matrixAdd(left, right) {
-        return left.map((row, i) => row.map((v, j) => v + right[i][j]));
-      }
-
-      function matrixMultiply(left, right) {
-        const n = left.length;
-        const out = Array.from({ length: n }, () => Array(n).fill(0));
-
-        for (let r = 0; r < n; r += 1) {
-          for (let k = 0; k < n; k += 1) {
-            if (left[r][k] === 0) continue;
-            for (let c = 0; c < n; c += 1) {
-              out[r][c] += left[r][k] * right[k][c];
-            }
-          }
-        }
-
-        return out;
-      }
-
-      function normalizeRows(matrix) {
-        return matrix.map((row) => {
-          const rowSum = row.reduce((sum, value) => sum + value, 0);
-          if (rowSum === 0) return row.map(() => 0);
-          return row.map((value) => value / rowSum);
-        });
-      }
-
-      function leontiefSeries(normalized, order) {
-        const n = normalized.length;
-        let sum = identityMatrix(n);
-        let power = identityMatrix(n);
-
-        for (let step = 1; step <= order; step += 1) {
-          power = matrixMultiply(power, normalized);
-          sum = matrixAdd(sum, power);
-        }
-
-        return sum;
-      }
-
-      function multiplyMatrixVector(matrix, vector) {
-        return matrix.map((row) => row.reduce((sum, value, i) => sum + value * vector[i], 0));
-      }
-
-      function normalizeVector(vector) {
-        const norm = Math.hypot(...vector);
-        if (norm === 0) return [...vector];
-        return vector.map((value) => value / norm);
-      }
-
-      function maxDelta(a, b) {
-        let max = 0;
-        for (let i = 0; i < a.length; i += 1) {
-          max = Math.max(max, Math.abs(a[i] - b[i]));
-        }
-        return max;
-      }
-
-      function rayleighQuotient(matrix, vector) {
-        const multiplied = multiplyMatrixVector(matrix, vector);
-        let numerator = 0;
-        let denominator = 0;
-
-        for (let i = 0; i < vector.length; i += 1) {
-          numerator += vector[i] * multiplied[i];
-          denominator += vector[i] * vector[i];
-        }
-
-        return denominator === 0 ? 0 : numerator / denominator;
-      }
-
-      function dominantEigen(matrix, maxIterations, tolerance) {
-        const n = matrix.length;
-        let vector = Array.from({ length: n }, () => 1 / Math.sqrt(n));
-        let converged = false;
-        let iterations = 0;
-
-        for (let step = 1; step <= maxIterations; step += 1) {
-          const next = normalizeVector(multiplyMatrixVector(matrix, vector));
-          const delta = maxDelta(next, vector);
-          vector = next;
-          iterations = step;
-
-          if (delta <= tolerance) {
-            converged = true;
-            break;
-          }
-        }
-
-        return {
-          value: rayleighQuotient(matrix, vector),
-          vector,
-          iterations,
-          converged,
-        };
-      }
+      // --- UI helpers ---
 
       function replaceWithNode(container, node) {
-        while (container.firstChild) {
-          container.removeChild(container.firstChild);
-        }
+        while (container.firstChild) container.removeChild(container.firstChild);
         container.appendChild(node);
       }
 
@@ -226,7 +128,6 @@
           const rowLabel = document.createElement('th');
           rowLabel.textContent = `R${r + 1}`;
           tr.appendChild(rowLabel);
-
           for (let c = 0; c < size; c += 1) {
             const td = document.createElement('td');
             const input = document.createElement('input');
@@ -246,23 +147,27 @@
       }
 
       function getMatrixValues() {
-        const size = clampDimension(Number(dimensionInput.value));
-        const matrix = Array.from({ length: size }, () => Array(size).fill(0));
-
         const inputs = matrixContainer.querySelectorAll('input.matrix-input');
+        let domSize = 0;
+        inputs.forEach((input) => {
+          domSize = Math.max(domSize, Number(input.dataset.row) + 1);
+        });
+        if (domSize === 0) {
+          const size = clampDimension(Number(dimensionInput.value));
+          return Array.from({ length: size }, () => Array(size).fill(0));
+        }
+        const matrix = Array.from({ length: domSize }, () => Array(domSize).fill(0));
         inputs.forEach((input) => {
           const row = Number(input.dataset.row);
           const col = Number(input.dataset.col);
           const value = Number(input.value);
           matrix[row][col] = Number.isFinite(value) ? value : 0;
         });
-
         return matrix;
       }
 
       function renderNumberMatrix(container, matrix, digits = 4) {
         const table = document.createElement('table');
-
         for (let r = 0; r < matrix.length; r += 1) {
           const tr = document.createElement('tr');
           for (let c = 0; c < matrix[r].length; c += 1) {
@@ -272,7 +177,6 @@
           }
           table.appendChild(tr);
         }
-
         replaceWithNode(container, table);
       }
 
@@ -291,9 +195,11 @@
         replaceWithNode(container, table);
       }
 
+      // --- Calculation ---
+
       function runCalculations() {
         try {
-          const matrix = getMatrixValues();
+          const denseMatrix = getMatrixValues();
           const order = Math.max(0, Math.floor(Number(orderInput.value) || 0));
           const maxIterations = Math.max(1, Math.floor(Number(iterationsInput.value) || 1));
           const tolerance = Number(toleranceInput.value);
@@ -302,15 +208,21 @@
             throw new Error('Tolerance must be a positive number.');
           }
 
-          const normalized = normalizeRows(matrix);
-          const leontief = leontiefSeries(normalized, order);
-          const eigen = dominantEigen(normalized, maxIterations, tolerance);
+          const flowCSR = csrFromDense(denseMatrix);
+          const normalizedCSR = normalizeRows(flowCSR);
 
-          renderNumberMatrix(normalizedOutput, normalized);
-          renderNumberMatrix(leontiefOutput, leontief);
+          // Leontief: I + A + A² + ... + Aᵏ
+          const leontief = computeLeontiefSeries(normalizedCSR, { order });
+
+          // Left eigenvector (stationary distribution) via power iteration on Aᵀ,
+          // which captures upstream structural importance in the supply chain.
+          const eigen = computeDominantEigenpair(transposeCSR(normalizedCSR), { maxIterations, tolerance });
+
+          renderNumberMatrix(normalizedOutput, denseFromCSR(normalizedCSR));
+          renderNumberMatrix(leontiefOutput, denseFromCSR(leontief.matrix));
           renderVector(eigenVectorOutput, eigen.vector);
 
-          leontiefMeta.textContent = `Computed with order k=${order}.`;
+          leontiefMeta.textContent = `Computed with order k=${leontief.order}.`;
           eigenMeta.textContent = `Eigenvalue ≈ ${eigen.value.toFixed(8)} | iterations: ${eigen.iterations} | converged: ${eigen.converged}`;
           statusEl.textContent = 'Calculation completed.';
           statusEl.className = 'ok';
@@ -322,8 +234,8 @@
 
       document.getElementById('resize').addEventListener('click', () => {
         const size = clampDimension(Number(dimensionInput.value));
-        dimensionInput.value = String(size);
         const old = getMatrixValues();
+        dimensionInput.value = String(size);
         const resized = Array.from({ length: size }, (_, r) =>
           Array.from({ length: size }, (_, c) => getValue(old, r, c)),
         );

@@ -1,7 +1,10 @@
 import { computeDominantEigenFromFlowMatrix } from '../../engine/eigen.js';
 import {
   type Dataset,
+  type CsrJsonArrays,
+  type DatasetMeta,
   type NodeMeta,
+  type NpzCsrArrays,
   type RawDatasetInput,
   type SparseMatrixCSC,
   type SparseMatrixCSR,
@@ -30,6 +33,10 @@ function validateNodes(nodes: NodeMeta[]): void {
 
     if (!node.label.trim()) {
       throw new Error(`Node label is required for id: ${node.id}`);
+    }
+
+    if (node.value !== undefined) {
+      assertFiniteNumber(node.value, `Node value must be finite for id: ${node.id}`);
     }
 
     if (seen.has(node.id)) {
@@ -148,6 +155,119 @@ function buildCSC(rows: number, cols: number, entries: SparseMatrixEntry[]): Spa
   return { rows, cols, colPtr, rowIdx, values };
 }
 
+function convertCsrToEntries(csr: SparseMatrixCSR): SparseMatrixEntry[] {
+  const entries: SparseMatrixEntry[] = [];
+
+  for (let row = 0; row < csr.rows; row += 1) {
+    const start = csr.rowPtr[row];
+    const end = csr.rowPtr[row + 1];
+
+    for (let idx = start; idx < end; idx += 1) {
+      entries.push({
+        row,
+        col: csr.colIdx[idx],
+        value: csr.values[idx],
+      });
+    }
+  }
+
+  return entries;
+}
+
+function buildNodesFromMeta(meta: DatasetMeta): NodeMeta[] {
+  if (meta.ordering.length !== meta.rows || meta.ordering.length !== meta.cols) {
+    throw new Error('Metadata ordering must contain one entry per matrix row/column.');
+  }
+
+  return meta.ordering.map((item) => ({
+    id: item.code,
+    label: `${item.region} · ${item.sector}`,
+    region: item.region,
+    sector: item.sector,
+    value: item.value,
+  }));
+}
+
+function validateMetaWithCsr(meta: DatasetMeta, csr: NpzCsrArrays): void {
+  validateVersion(meta.version);
+
+  const [shapeRows, shapeCols] = csr.shape ?? [meta.rows, meta.cols];
+
+  if (shapeRows !== meta.rows || shapeCols !== meta.cols) {
+    throw new Error('Metadata rows/cols must match NPZ shape.');
+  }
+
+  if (meta.nnz !== csr.data.length || meta.nnz !== csr.indices.length) {
+    throw new Error('Metadata nnz must match NPZ data and indices lengths.');
+  }
+
+  if (csr.indptr.length !== meta.rows + 1) {
+    throw new Error('NPZ indptr length must be rows + 1.');
+  }
+
+  const lastPtr = Number(csr.indptr[csr.indptr.length - 1]);
+  if (!Number.isInteger(lastPtr) || lastPtr !== meta.nnz) {
+    throw new Error('NPZ indptr terminal value must equal nnz.');
+  }
+}
+
+function buildCsrFromNpzArrays(meta: DatasetMeta, csr: NpzCsrArrays): SparseMatrixCSR {
+  const rows = meta.rows;
+  const cols = meta.cols;
+  const rowPtr = new Uint32Array(csr.indptr.length);
+
+  for (let i = 0; i < csr.indptr.length; i += 1) {
+    const pointer = Number(csr.indptr[i]);
+
+    if (!Number.isInteger(pointer) || pointer < 0 || pointer > meta.nnz) {
+      throw new Error(`NPZ indptr contains invalid pointer at index ${i}: ${pointer}`);
+    }
+
+    rowPtr[i] = pointer;
+
+    if (i > 0 && rowPtr[i] < rowPtr[i - 1]) {
+      throw new Error('NPZ indptr must be monotonically non-decreasing.');
+    }
+  }
+
+  const colIdx = new Uint32Array(csr.indices.length);
+  const values = new Float64Array(csr.data.length);
+
+  for (let i = 0; i < csr.indices.length; i += 1) {
+    const col = csr.indices[i];
+    const value = csr.data[i];
+
+    if (!Number.isInteger(col) || col < 0 || col >= cols) {
+      throw new Error(`NPZ indices contains invalid column at index ${i}: ${col}`);
+    }
+
+    assertFiniteNumber(value, `NPZ data must be finite at index ${i}.`);
+
+    colIdx[i] = col;
+    values[i] = value;
+  }
+
+  return { rows, cols, rowPtr, colIdx, values };
+}
+
+function buildDatasetFromCsrAndNodes(version: '1.0', nodes: NodeMeta[], csr: SparseMatrixCSR): Dataset {
+  const entries = convertCsrToEntries(csr);
+  const sanitizedEntries = sanitizeValues(sortEntries(entries));
+
+  const rebuiltCsr = buildCSR(csr.rows, csr.cols, sanitizedEntries);
+
+  return {
+    version,
+    nodeOrder: nodes.map((node) => node.id),
+    nodeMetaById: new Map(nodes.map((node) => [node.id, node])),
+    matrix: {
+      csr: rebuiltCsr,
+      csc: buildCSC(csr.rows, csr.cols, sanitizedEntries),
+    },
+    eigen: computeDominantEigenFromFlowMatrix(rebuiltCsr),
+  };
+}
+
 export function ingestDataset(input: RawDatasetInput): Dataset {
   const { nodes, matrix } = input;
 
@@ -176,4 +296,27 @@ export function ingestDataset(input: RawDatasetInput): Dataset {
     },
     eigen: computeDominantEigenFromFlowMatrix(csr),
   };
+}
+
+
+export function npzCsrArraysFromJson(payload: CsrJsonArrays, dtypeData: 'float32' | 'float64'): NpzCsrArrays {
+  const data = dtypeData === 'float32' ? Float32Array.from(payload.data) : Float64Array.from(payload.data);
+
+  return {
+    data,
+    indices: Int32Array.from(payload.indices),
+    indptr: Int32Array.from(payload.indptr),
+    shape: payload.shape,
+  };
+}
+
+export function ingestDatasetFromNpz(meta: DatasetMeta, csrArrays: NpzCsrArrays): Dataset {
+  validateMetaWithCsr(meta, csrArrays);
+
+  const nodes = buildNodesFromMeta(meta);
+  validateNodes(nodes);
+
+  const csr = buildCsrFromNpzArrays(meta, csrArrays);
+
+  return buildDatasetFromCsrAndNodes(meta.version, nodes, csr);
 }

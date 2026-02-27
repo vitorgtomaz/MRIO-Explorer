@@ -1,0 +1,141 @@
+{
+  "name": "toy_20x20_linear",
+  "version": "1.0",
+  "rows": 20,
+  "cols": 20,
+  "nnz": 76,
+  "dtype_data": "float64",
+  "dtype_indices": "int32",
+  "dtype_indptr": "int32",
+  "ordering": [
+    {
+      "code": "NO_AGR_01",
+      "region": "North",
+      "sector": "Agriculture",
+      "value": 100.0
+    },
+    {
+      "code": "NO_MAN_02",
+      "region": "North",
+      "sector": "Manufacturing",
+      "value": 107.0
+    },
+    {
+      "code": "NO_ENE_03",
+      "region": "North",
+      "sector": "Energy",
+      "value": 114.0
+    },
+    {
+      "code": "NO_TRA_04",
+      "region": "North",
+      "sector": "Transport",
+      "value": 121.0
+    },
+    {
+      "code": "NO_SER_05",
+      "region": "North",
+      "sector": "Services",
+      "value": 128.0
+    },
+    {
+      "code": "SO_AGR_06",
+      "region": "South",
+      "sector": "Agriculture",
+      "value": 135.0
+    },
+    {
+      "code": "SO_MAN_07",
+      "region": "South",
+      "sector": "Manufacturing",
+      "value": 142.0
+    },
+    {
+      "code": "SO_ENE_08",
+      "region": "South",
+      "sector": "Energy",
+      "value": 149.0
+    },
+    {
+      "code": "SO_TRA_09",
+      "region": "South",
+      "sector": "Transport",
+      "value": 156.0
+    },
+    {
+      "code": "SO_SER_10",
+      "region": "South",
+      "sector": "Services",
+      "value": 163.0
+    },
+    {
+      "code": "EA_AGR_11",
+      "region": "East",
+      "sector": "Agriculture",
+      "value": 170.0
+    },
+    {
+      "code": "EA_MAN_12",
+      "region": "East",
+      "sector": "Manufacturing",
+      "value": 177.0
+    },
+    {
+      "code": "EA_ENE_13",
+      "region": "East",
+      "sector": "Energy",
+      "value": 184.0
+    },
+    {
+      "code": "EA_TRA_14",
+      "region": "East",
+      "sector": "Transport",
+      "value": 191.0
+    },
+    {
+      "code": "EA_SER_15",
+      "region": "East",
+      "sector": "Services",
+      "value": 198.0
+    },
+    {
+      "code": "WE_AGR_16",
+      "region": "West",
+      "sector": "Agriculture",
+      "value": 205.0
+    },
+    {
+      "code": "WE_MAN_17",
+      "region": "West",
+      "sector": "Manufacturing",
+      "value": 212.0
+    },
+    {
+      "code": "WE_ENE_18",
+      "region": "West",
+      "sector": "Energy",
+      "value": 219.0
+    },
+    {
+      "code": "WE_TRA_19",
+      "region": "West",
+      "sector": "Transport",
+      "value": 226.0
+    },
+    {
+      "code": "WE_SER_20",
+      "region": "West",
+      "sector": "Services",
+      "value": 233.0
+    }
+  ],
+  "units": "USD million",
+  "currency_year": 2020,
+  "price_basis": "basic prices",
+  "checksum": "1ef3cbdf43575c0367d3fc6257ba67de4b5dec840fda58442a5abbbd2e875d3a",
+  "build_parameters": {
+    "columnNormalizationMethod": "none (direct toy coefficients)",
+    "zeroTreatment": "implicit sparse zeros",
+    "balancingMethod": "none"
+  }
+}

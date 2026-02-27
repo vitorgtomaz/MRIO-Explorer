@@ -5,7 +5,53 @@ export interface NodeMeta {
   label: string;
   region?: string;
   sector?: string;
+  value?: number;
   attributes?: Record<string, string | number | boolean | null>;
+}
+
+export interface DatasetOrderingItem {
+  code: string;
+  region: string;
+  sector: string;
+  value: number;
+}
+
+export interface DatasetBuildParameters {
+  columnNormalizationMethod?: string;
+  zeroTreatment?: string;
+  balancingMethod?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface DatasetMeta {
+  name: string;
+  version: '1.0';
+  rows: number;
+  cols: number;
+  nnz: number;
+  dtype_data: 'float32' | 'float64';
+  dtype_indices: 'int32';
+  dtype_indptr: 'int32' | 'int64';
+  ordering: DatasetOrderingItem[];
+  units: string;
+  currency_year: number;
+  price_basis: string;
+  checksum?: string;
+  build_parameters?: DatasetBuildParameters;
+}
+
+export interface NpzCsrArrays {
+  data: Float32Array | Float64Array;
+  indices: Int32Array;
+  indptr: Int32Array | BigInt64Array;
+  shape?: readonly [number, number];
+}
+
+export interface CsrJsonArrays {
+  data: number[];
+  indices: number[];
+  indptr: number[];
+  shape?: readonly [number, number];
 }
 
 export interface SparseMatrixEntry {
@@ -34,7 +80,6 @@ export interface SparseMatrixStore {
   csr: SparseMatrixCSR;
   csc: SparseMatrixCSC;
 }
-
 
 export interface DominantEigenResult {
   value: number;

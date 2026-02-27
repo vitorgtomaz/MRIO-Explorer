@@ -4,3 +4,5 @@ coverage/
 *.code-workspace
 3.3.11
 node_modules
+dist/*
+*.ipynb
